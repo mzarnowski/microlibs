@@ -9,6 +9,9 @@ repositories {
 }
 
 subprojects {
+    // ignore aggregating projects
+    if (project.name == "infra") return@subprojects
+
     apply(plugin = "org.gradle.maven-publish")
     apply(plugin = "org.gradle.signing")
     apply(plugin = "org.gradle.java")

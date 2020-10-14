@@ -120,6 +120,51 @@ class BufferTest {
         }
     }
 
+    @Test
+    fun reader_reads_all_available_elements() {
+        buffer(Capacity).apply {
+            val reader = reader()
+
+            val available = writer.claim(4)
+            if (available < 4) fail("Writer cannot write 4 values")
+            repeat(4) { writer.write(it, it) }
+            writer.release(4)
+
+            val read = reader.readAll()
+            assertThat(read).containsExactly(0, 1, 2, 3)
+            assertThat(reader.claim(Int.MAX_VALUE)).isEqualTo(0)
+        }
+    }
+
+    @Test
+    fun reader_reads_wrapped_range() {
+        buffer(Capacity).apply {
+            val reader = reader()
+            var index = 0
+            fun next(): Int = (index++ and InitialCapacity)
+
+            writer.claim(Int.MAX_VALUE).also { available ->
+                repeat(available) { writer.write(it, next()) }
+                writer.release(available)
+            }
+
+            reader.claim(3).also { available ->
+                if (available < 3) fail("Reader cannot read 3 values")
+                repeat(3, reader::read)
+                reader.release(3)
+            }
+
+            writer.claim(Int.MAX_VALUE).also { available ->
+                repeat(available) { writer.write(it, next()) }
+                writer.release(available)
+            }
+
+            val read = reader.readAll()
+            assertThat(read).containsExactly(3, 4, 5, 6, 7, 0, 1)
+            assertThat(reader.claim(Int.MAX_VALUE)).isEqualTo(0)
+        }
+    }
+
     @ParameterizedTest
     @ValueSource(ints = [1, 2, 4, 8, 16, 32])
     fun readers_consume_written_values(readerCount: Int) {

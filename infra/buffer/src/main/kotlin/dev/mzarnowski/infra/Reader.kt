@@ -18,6 +18,13 @@ class Reader<A> internal constructor(private val buffer: Buffer<A>, private var 
 
     fun read(offset: Int): A = buffer.read((first + offset) and mask)
 
+    fun readAll(): Array<A> {
+        val available = claim(Int.MAX_VALUE)
+        return buffer.read(first, available).also {
+            release(available)
+        }
+    }
+
     fun release(n: Int) {
         val to = (first + n) and mask
 

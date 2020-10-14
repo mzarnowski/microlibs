@@ -14,7 +14,7 @@ internal open class Readers(private val capacity: Int) {
     private var first = 0
 
     private fun increase(offset: Int) = slots.incrementAndGet(offset)
-    private fun decrease(offset: Int) = slots.decrementAndGet(offset)
+    internal fun decrease(offset: Int) = slots.decrementAndGet(offset)
 
     fun replace(old: Int, new: Int) {
         increase(new)

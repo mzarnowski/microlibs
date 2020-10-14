@@ -103,6 +103,23 @@ class BufferTest {
         }
     }
 
+    @Test
+    fun disposing_lagging_reader_unblocks_writer() {
+        buffer(Capacity).apply {
+            val r1 = reader()
+            val r2 = reader()
+
+            writer.release(InitialCapacity)
+            r1.release(4)
+            assertThat(writer.claim(1)).isEqualTo(0)
+
+            // dispose lagging reader to unblock writing
+            r2.dispose()
+
+            assertThat(writer.claim(Capacity)).isEqualTo(InitialCapacity - r1.claim(Capacity))
+        }
+    }
+
     @ParameterizedTest
     @ValueSource(ints = [1, 2, 4, 8, 16, 32])
     fun readers_consume_written_values(readerCount: Int) {

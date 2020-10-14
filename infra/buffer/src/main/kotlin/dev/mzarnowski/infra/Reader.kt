@@ -26,4 +26,8 @@ class Reader<A> internal constructor(private val buffer: Buffer<A>, private var 
         available -= n
         first = to
     }
+
+    fun dispose() {
+        buffer.readers.decrease(first)
+    }
 }

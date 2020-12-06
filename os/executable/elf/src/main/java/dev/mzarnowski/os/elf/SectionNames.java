@@ -11,7 +11,7 @@ final class SectionNames {
         this.sectionOffset = buffer.position();
     }
 
-    String nameAt(int offset) {
+    String of(int offset) {
         var start = sectionOffset + offset;
         buffer.position(start);
         while (buffer.get() != 0) continue;

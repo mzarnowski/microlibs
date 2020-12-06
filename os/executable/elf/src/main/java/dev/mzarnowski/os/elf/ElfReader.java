@@ -18,8 +18,8 @@ class ElfReader {
         return false;
     }
 
-    final int get1() {
-        return buffer.get();
+    final boolean hasMore() {
+        return buffer.position() < buffer.limit();
     }
 
     final int get2() {

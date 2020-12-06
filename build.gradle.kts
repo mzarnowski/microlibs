@@ -92,6 +92,7 @@ subprojects {
     }
 
     signing {
+        // requires signing.keyId, signing.password, signing.secretKeyRingFile in ~/.gradle/gradle.properties
         sign(publishing.publications["maven"])
     }
 

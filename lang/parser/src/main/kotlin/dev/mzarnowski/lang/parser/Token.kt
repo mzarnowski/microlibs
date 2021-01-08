@@ -1,3 +1,7 @@
 package dev.mzarnowski.lang.parser
 
-data class Token(val from: Int, val length: Int)
+interface Foo {
+    class Map<A, B>(f: (A) -> B) : Foo
+}
+
+data class Token(val from: Int, val length: Int) : Foo

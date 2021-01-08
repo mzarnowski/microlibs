@@ -8,3 +8,6 @@ findProject(":infra:fs:fileclerk")?.name = "fileclerk"
 
 include("os:executable:elf")
 findProject("os:executable:elf")?.name = "elf-executable"
+
+include("lang:parser")
+findProject(":lang:parser")?.name = "parser"

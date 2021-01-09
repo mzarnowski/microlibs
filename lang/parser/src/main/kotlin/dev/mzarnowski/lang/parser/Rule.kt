@@ -14,9 +14,15 @@ class Adapter<From, To>(val next: Rule<To>, val f: (From) -> To) : Rule<From> {
     }
 }
 
-interface Parse<A> : Rule<Input>
+fun interface Parse<A> : Rule<Input> {
+    fun <B : Any> map(f: (A) -> B): Parse<B> = Parse { input, from ->
+        this.match(input, from).also {
+            if (it >= 0) input.ops.add(Op.map(f))
+        }
+    }
+}
 
-class Capture(private val matcher: Match) : Parse<CharSequence> {
+class Capture(private val matcher: Match) : Parse<String> {
     override fun match(input: Input, from: Int): Int {
         return matcher.match(input.text, from).also {
             if (it >= 0) input.stack += input.text.subSequence(from, from + it)

@@ -6,10 +6,11 @@ fun interface Match : Rule<String> {
 
     companion object {
         operator fun invoke(f: (Char) -> Boolean): Match = Match { input, from ->
-            var offset = from
-
-            while (offset < input.length && f(input[offset])) offset++
-            if (offset == from) FAILED else offset - from
+            if (f(input[from])) {
+                var offset = from + 1
+                while (offset < input.length && f(input[offset])) offset++
+                offset - from
+            } else FAILED
         }
 
         operator fun invoke(pattern: CharSequence): Match = Match { input, from ->

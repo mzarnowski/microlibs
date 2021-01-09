@@ -1,9 +1,7 @@
 package dev.mzarnowski.lang.parser
 
 fun main() {
-    val input = Input("ala ma 32 koty")
-    val rule = Match("ala ma ") and Match(Char::isDigit).map(String::toInt) and Match(" koty")
-    val result = rule.match(input, 0)
+    val rule = Match("ala ma ") and Capture(Char::isDigit) and Match(" koty")
+    val result = rule.parse("ala ma 32 koty")
     println(result)
-    println(input.tokens)
 }

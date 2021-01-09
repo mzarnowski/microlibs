@@ -1,42 +1,32 @@
 package dev.mzarnowski.lang.parser
 
-internal class Map<A, B>(private val f: (A) -> B) : Rule<B>() {
-    override fun match(input: Input, offset: Int): Int {
-        input.push(f)
-        return 0
-    }
-}
-
-abstract class Match : Rule<String>() {
-    final override fun <B> and(that: Rule<B>): Rule<B> = super.and(that)
-    final override fun or(that: Rule<String>): Rule<String> = super.or(that)
-
-    fun <A> map(f: (String) -> A): Rule<A> = Capture(this) and Map(f)
+fun interface Match : Rule<String> {
+    infix fun and(that: Match): Matcher = Matcher(Composed.And(listOf(this, that)))
+    infix fun <A> and(that: Parse<A>): Parser<A> = Parser(Composed.And(listOf(this.adapt(Input::text), that)))
 
     companion object {
-        operator fun invoke(f: (Char) -> Boolean): Match = object : Match() {
-            override fun match(input: Input, offset: Int): Int {
-                val text = input.source
-                var matched = 0
+        operator fun invoke(f: (Char) -> Boolean): Match = Match { input, from ->
+            var matched = 0
 
-                while (f(text[offset + matched])) matched++
-                return matched
-            }
+            while (f(input[from + matched])) matched++
+            matched
         }
 
-        operator fun invoke(pattern: String): Match = object : Match() {
-            override fun match(input: Input, offset: Int): Int {
-                val text = input.source
-                var matched = 0
-
-                while (matched < pattern.length) {
-                    if (text[offset + matched] == pattern[matched]) matched++
-                    else return FAILED
-                }
-
-                return matched
+        operator fun invoke(pattern: CharSequence): Match = Match { input, from ->
+            var matched = 0
+            while (matched < pattern.length) {
+                if (input[from + matched] == pattern[matched]) matched++
+                else return@Match FAILED
             }
+
+            matched
         }
+
+        operator fun invoke(char: Char): Match = Match { input, from ->
+            if (input[from] == char) 1 else FAILED
+        }
+
+        val Whitespace = Match(Char::isWhitespace)
     }
-}
 
+}

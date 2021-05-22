@@ -132,9 +132,9 @@ class ByteMessageFieldTest {
         }
 
         val stream = message.stream(128)
-        val block = message.int()
+        val int = message.int()
 
-        assertThat(block.read()).isEqualTo(0x03040506)
+        assertThat(int.read()).isEqualTo(0x03040506)
     }
 
     @Test
@@ -146,8 +146,109 @@ class ByteMessageFieldTest {
         }
 
         val stream = message.stream(128)
-        val block = message.long()
+        val long = message.long()
 
-        assertThat(block.read()).isEqualTo(0x0304050607080910)
+        assertThat(long.read()).isEqualTo(0x0304050607080910)
+    }
+
+    //////////////////////////////////////////
+    //                Writes                //
+    //////////////////////////////////////////
+
+    @Test
+    fun `writes single block`() {
+        val bytes = ByteArray(32)
+        val message = ByteMessage().apply {
+            readFrom(bytes, 0) // TODO rename
+        }
+
+        val block = message.block(4)
+
+        block.write(byteArrayOf(5, 4, 3, 2, 1), 1)
+
+        assertThat(bytes.take(4)).isEqualTo(byteArrayOf(4, 3, 2, 1).toList())
+    }
+
+    @Test
+    fun `writes consecutive block`() {
+        val bytes = ByteArray(32)
+        val message = ByteMessage().apply {
+            readFrom(bytes, 0) // TODO rename
+        }
+
+        val firstBlock = message.block(4)
+        val secondBlock = message.block(3)
+
+        firstBlock.write(byteArrayOf(5, 4, 3, 2, 1), 1)
+        secondBlock.write(byteArrayOf(9, 8, 7, 2, 1))
+
+        assertThat(bytes.drop(4).take(3)).isEqualTo(byteArrayOf(9, 8, 7).toList())
+    }
+
+    @Test
+    fun `writes stream`() {
+        val bytes = ByteArray(32)
+        val message = ByteMessage().apply {
+            readFrom(bytes, 0) // TODO rename
+        }
+
+        val stream = message.stream(128)
+
+        stream.append(byteArrayOf(0x01, 0x02, 0x03))
+        stream.flush()
+
+        assertThat(bytes.take(4)).isEqualTo(byteArrayOf(0x03, 0x01, 0x02, 0x03).toList())
+    }
+
+    @Test
+    fun `writes byte`() {
+        val bytes = ByteArray(32)
+        val message = ByteMessage().apply {
+            readFrom(bytes, 0) // TODO rename
+        }
+
+        val byte = message.byte()
+
+        byte.write(0x6f)
+        assertThat(bytes.take(4)).isEqualTo(byteArrayOf(0x6f, 0, 0, 0).toList())
+    }
+
+    @Test
+    fun `writes short`() {
+        val bytes = ByteArray(32)
+        val message = ByteMessage().apply {
+            readFrom(bytes, 0) // TODO rename
+        }
+
+        val byte = message.short()
+
+        byte.write(0x6f5e)
+        assertThat(bytes.take(4)).isEqualTo(byteArrayOf(0x6f, 0x5e, 0, 0).toList())
+    }
+
+    @Test
+    fun `writes int`() {
+        val bytes = ByteArray(32)
+        val message = ByteMessage().apply {
+            readFrom(bytes, 0) // TODO rename
+        }
+
+        val byte = message.int()
+
+        byte.write(0x6f5e4d3c)
+        assertThat(bytes.take(4)).isEqualTo(byteArrayOf(0x6f, 0x5e, 0x4d, 0x3c).toList())
+    }
+
+    @Test
+    fun `writes long`() {
+        val bytes = ByteArray(32)
+        val message = ByteMessage().apply {
+            readFrom(bytes, 0) // TODO rename
+        }
+
+        val byte = message.long()
+
+        byte.write(0x0102030405060708)
+        assertThat(bytes.take(8)).isEqualTo(byteArrayOf(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08).toList())
     }
 }

@@ -20,4 +20,28 @@ class Buffer(private val bytes: ByteArray, private val offset: Int) {
         }
         return value
     }
+
+    fun write(outputOffset: Int, bytes: ByteArray, inputOffset: Int, length: Int) {
+        System.arraycopy(bytes, inputOffset, this.bytes, outputOffset, length)
+    }
+
+    fun write(at: Int, padding: Padding, size: Int) {
+        padding.pad(bytes, at, size)
+    }
+
+    fun writeInt(offset: Int, value: Int, size: Int) {
+        var shift = 8 * (size - 1)
+        repeat(size) {
+            bytes[offset + it] = (value ushr shift).toByte()
+            shift -= 8
+        }
+    }
+
+    fun writeLong(offset: Int, value: Long, size: Int) {
+        var shift = 8 * (size - 1)
+        repeat(size) {
+            bytes[offset + it] = (value ushr shift).toByte()
+            shift -= 8
+        }
+    }
 }

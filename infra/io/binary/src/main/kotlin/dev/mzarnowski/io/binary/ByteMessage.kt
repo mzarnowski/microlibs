@@ -1,5 +1,7 @@
 package dev.mzarnowski.io.binary
 
+import kotlin.math.min
+
 class ByteMessage {
     private var buffer: Buffer? = null
 
@@ -7,11 +9,22 @@ class ByteMessage {
     private var offsets = IntArray(8)
     private var lastKnownOffset = 0
 
-    fun byte(): IntField = add(::IntField, 1)
-    fun short(): IntField = add(::IntField, 2)
-    fun int(): IntField = add(::IntField, 4)
-    fun long(): LongField = add(::LongField, 8)
-    fun block(bytes: Int): BlockField = add(::BlockField, bytes)
+    fun byte(): IntField = int(1)
+    fun short(): IntField = int(2)
+    fun int(): IntField = int(4)
+
+    fun long(): LongField {
+        val index = fields.size
+        val field = LongField(this, index, 8)
+        return registered(field, index)
+    }
+
+    // TODO is it a correct default?
+    fun block(bytes: Int, padding: Padding = Padding.None): BlockField {
+        val index = fields.size
+        val field = BlockField(this, index, bytes, padding)
+        return registered(field, index)
+    }
 
     fun stream(limit: Int): StreamField {
         val maxSizeInBytes = when {
@@ -20,7 +33,7 @@ class ByteMessage {
             else -> 4
         }
 
-        val sizeField = add(::IntField, maxSizeInBytes)
+        val sizeField = int(maxSizeInBytes)
         val index = fields.size
         return StreamField(this, sizeField, index).also {
             fields += it // note that the offset of the next field is not set since the size of the stream is not known
@@ -59,15 +72,13 @@ class ByteMessage {
         return buffer?.readLong(offset, bytes) ?: throw IllegalStateException("Input not set")
     }
 
-    private fun <A : Field> add(field: (ByteMessage, Int, Int) -> A, size: Int): A {
-        val index = fields.size
-        return field(this, index, size).also {
-            fields += it
-            if (lastKnownOffset == index) {
-                offsets[index + 1] = offsets[index] + size
-                lastKnownOffset = index + 1
-            }
+    private fun <A : Field> registered(field: A, index: Int): A {
+        fields += field
+        if (lastKnownOffset == index) {
+            offsets[index + 1] = offsets[index] + field.size()
+            lastKnownOffset = index + 1
         }
+        return field
     }
 
     private fun calculateOffset(index: Int) {
@@ -81,4 +92,33 @@ class ByteMessage {
             lastKnownOffset = index + 1
         }
     }
+
+    fun writeBlock(index: Int, size: Int, bytes: ByteArray, inputOffset: Int, padding: Padding) {
+        if (lastKnownOffset < index) TODO("Fail because the correct offset is not known")
+        val offset = offsets[index]
+        val available = min(size, bytes.size - inputOffset)
+
+        val buffer = buffer ?: throw IllegalStateException("Output not set")
+        buffer.write(offset, bytes, inputOffset, available)
+        if (available < size) buffer.write(offset + available, padding, size - available) // FIXME Ugly
+    }
+
+    fun writeInt(index: Int, value: Int, bytes: Int) {
+        if (lastKnownOffset < index) TODO("Fail because the correct offset is not known")
+        val offset = offsets[index]
+        buffer?.writeInt(offset, value, bytes) ?: throw IllegalStateException("Output not set")
+    }
+
+    fun writeLong(index: Int, value: Long, bytes: Int) {
+        if (lastKnownOffset < index) TODO("Fail because the correct offset is not known")
+        val offset = offsets[index]
+        buffer?.writeLong(offset, value, bytes) ?: throw IllegalStateException("Output not set")
+    }
+
+    private fun int(size: Int): IntField {
+        val index = fields.size
+        val field = IntField(this, index, size)
+        return registered(field, index)
+    }
+
 }

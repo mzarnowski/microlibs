@@ -9,6 +9,7 @@ class ByteMessage {
     private var offsets = IntArray(8)
     private var lastKnownOffset = 0
 
+    // this API should be in a builder, favoring here: (Int, (ByteMessage, Int) -> Field)
     fun byte(): IntField = int(1)
     fun short(): IntField = int(2)
     fun int(): IntField = int(4)

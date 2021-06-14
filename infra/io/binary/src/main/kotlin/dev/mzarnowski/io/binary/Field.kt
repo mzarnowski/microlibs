@@ -4,6 +4,7 @@ interface Field {
     fun size(): Int
 }
 
+// TODO rename ArrayOfBytes
 class BlockField(
     private val parent: ByteMessage,
     private val index: Int,
@@ -15,9 +16,22 @@ class BlockField(
     override fun size(): Int = size
 }
 
+// TODO rename StreamOfBytes
 class StreamField(private val parent: ByteMessage, private val size: IntField, private val index: Int) : Field {
+    private var position = 0
+
     fun readBlock(): ByteArray = parent.readBlock(index, size())
     override fun size(): Int = size.read()
+
+    fun append(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size) {
+//        parent.writeBlock(position, bytes, offset, length)
+//        position += length
+    }
+
+    fun flush(){
+//        val size = buffer.size
+
+    }
 }
 
 class IntField(private val parent: ByteMessage, private val index: Int, private val size: Int) : Field {

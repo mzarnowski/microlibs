@@ -23,6 +23,18 @@ final class KeyRepositoryTest {
         Assertions.assertFalse(repository.contains(id));
     }
 
+    @Test
+    public void approved_key_is_no_longer_pending() {
+        KeyRepository repository = new InMemory();
+        var id = repository.add(KEYS.getPublic());
+
+        // when
+        repository.approve(id);
+
+        Assertions.assertTrue(repository.contains(id));
+        Assertions.assertTrue(repository.pending().isEmpty());
+    }
+
     private KeyPair generateKeyPair() {
         try {
             var generator = KeyPairGenerator.getInstance("RSA");

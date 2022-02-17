@@ -11,7 +11,9 @@ interface KeyRepository {
     boolean contains(UUID id);
 
     Set<Pending> pending();
+    void approve(UUID id);
 
+    record Request(PublicKey key, Hash fingerprint, ZonedDateTime since) {}
     record Pending(UUID id, Hash fingerprint, ZonedDateTime since) {}
 }
 

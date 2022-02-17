@@ -11,6 +11,11 @@ import java.util.stream.Collectors;
 final class InMemory implements KeyRepository {
     private final Map<UUID, Request> pending = new HashMap<>();
     private final Map<UUID, PublicKey> keys = new HashMap<>();
+    private final PublicKey authority;
+
+    public InMemory(PublicKey authority) {
+        this.authority = authority;
+    }
 
     @Override
     public UUID add(PublicKey key) {
@@ -33,11 +38,16 @@ final class InMemory implements KeyRepository {
     }
 
     @Override
-    public void approve(UUID id) {
-        var pending = this.pending.remove(id);
+    public void approve(UUID id, Signature signature) {
+        var pending = this.pending.get(id);
         if (pending == null) return;
 
-        keys.put(id, pending.key());
+        var key = pending.key();
+
+        if (signature.matches(key.getEncoded(), authority)) {
+            keys.put(id, pending.key());
+            this.pending.remove(id);
+        }
     }
 
 }

@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.4.10"
+    kotlin("jvm") version "1.9.10"
     `maven-publish`
     signing
 }
@@ -27,26 +27,24 @@ subprojects {
     }
 
     dependencies {
-        testImplementation("org.assertj:assertj-core:3.12.2")
+        testImplementation("org.assertj:assertj-core:3.24.2")
 
-        testImplementation("org.mockito:mockito-core:3.5.13")
-        testImplementation("org.mockito:mockito-junit-jupiter:3.5.13")
+        testImplementation("org.mockito:mockito-core:5.5.0")
+        testImplementation("org.mockito:mockito-junit-jupiter:5.5.0")
 
-        testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.2")
-        testImplementation("org.junit.jupiter:junit-jupiter-params:5.4.2")
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.4.2")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
+        testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.0")
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.0")
 
         "jmhImplementation"(project)
-        "jmhImplementation"("org.openjdk.jmh:jmh-core:1.21")
-        "jmhAnnotationProcessor"("org.openjdk.jmh:jmh-generator-annprocess:1.21")
+        "jmhImplementation"("org.openjdk.jmh:jmh-core:1.37")
+        "jmhAnnotationProcessor"("org.openjdk.jmh:jmh-generator-annprocess:1.37")
     }
 
     java {
+        toolchain.languageVersion.set(JavaLanguageVersion.of(20))
         withSourcesJar()
         withJavadocJar()
-
-        sourceCompatibility = JavaVersion.VERSION_17
-        sourceCompatibility = JavaVersion.VERSION_17
     }
 
     publishing {
@@ -106,7 +104,7 @@ subprojects {
 
     tasks.register("jmh", type = JavaExec::class) {
         dependsOn("jmhClasses")
-        main = "org.openjdk.jmh.Main"
+        mainClass.set("org.openjdk.jmh.Main")
         classpath = sourceSets["jmh"].runtimeClasspath
     }
 }
